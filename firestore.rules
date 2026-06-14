@@ -1,0 +1,153 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitive Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity validations
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'avatar', 'transitionType', 'createdAt'])
+        && data.keys().size() == 6
+        && data.uid == request.auth.uid
+        && data.email is string && data.email.size() <= 256
+        && data.displayName is string && data.displayName.size() <= 100
+        && data.avatar is string && data.avatar.size() <= 512
+        && data.transitionType is string && data.transitionType.size() <= 100
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    function isValidJournal(data) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'text', 'hasAudio', 'overallMoodScore', 'dominantEmotion', 'keywords', 'aiResponse', 'date', 'createdAt'])
+        && data.keys().size() == 11
+        && data.userId == request.auth.uid
+        && data.id is string && data.id.size() <= 128
+        && data.title is string && data.title.size() <= 256
+        && data.text is string && data.text.size() <= 50000
+        && data.hasAudio is bool
+        && data.overallMoodScore is int && data.overallMoodScore >= 1 && data.overallMoodScore <= 10
+        && data.dominantEmotion is string && data.dominantEmotion.size() <= 64
+        && data.keywords is list && data.keywords.size() <= 10
+        && data.aiResponse is string && data.aiResponse.size() <= 10000
+        && data.date is string && data.date.size() <= 64
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    function isValidCheckin(data) {
+      return data.keys().hasAll(['id', 'userId', 'moodScore', 'subMoods', 'sleepHours', 'physicalActivity', 'createdAt'])
+        && data.keys().size() == 7
+        && data.userId == request.auth.uid
+        && data.id is string && data.id.size() <= 128
+        && data.moodScore is int && data.moodScore >= 1 && data.moodScore <= 10
+        && data.subMoods is list && data.subMoods.size() <= 20
+        && data.sleepHours is int && data.sleepHours >= 0 && data.sleepHours <= 24
+        && data.physicalActivity is bool
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    function isValidPost(data) {
+      return data.keys().hasAll(['id', 'category', 'title', 'body', 'authorId', 'authorName', 'authorAvatar', 'anonymous', 'likes', 'likedBy', 'tags', 'createdAt'])
+        && data.keys().size() == 12
+        && data.authorId == request.auth.uid
+        && data.id is string && data.id.size() <= 128
+        && data.category is string && data.category.size() <= 128
+        && data.title is string && data.title.size() <= 256
+        && data.body is string && data.body.size() <= 10000
+        && data.authorName is string && data.authorName.size() <= 100
+        && data.authorAvatar is string && data.authorAvatar.size() <= 512
+        && data.anonymous is bool
+        && data.likes is int
+        && data.likedBy is list && data.likedBy.size() <= 5000
+        && data.tags is list && data.tags.size() <= 10
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    function isValidReply(data, postId) {
+      return data.keys().hasAll(['id', 'postId', 'body', 'authorId', 'authorName', 'authorAvatar', 'anonymous', 'createdAt'])
+        && data.keys().size() == 8
+        && data.authorId == request.auth.uid
+        && data.postId == postId
+        && data.id is string && data.id.size() <= 128
+        && data.body is string && data.body.size() <= 5000
+        && data.authorName is string && data.authorName.size() <= 100
+        && data.authorAvatar is string && data.authorAvatar.size() <= 512
+        && data.anonymous is bool
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    // Rules matching individual collections
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming())
+                       && incoming().createdAt == existing().createdAt
+                       && incoming().uid == existing().uid;
+      allow delete: if isOwner(userId);
+    }
+
+    match /journals/{journalId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(journalId) && isValidJournal(incoming());
+      allow update: if isSignedIn() && isValidId(journalId) && existing().userId == request.auth.uid && isValidJournal(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /checkins/{checkinId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(checkinId) && isValidCheckin(incoming());
+      allow update: if isSignedIn() && isValidId(checkinId) && existing().userId == request.auth.uid && isValidCheckin(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(postId) && isValidPost(incoming());
+      allow update: if isSignedIn() && isValidId(postId) && (
+        // Case 1: Post owner editing content
+        (existing().authorId == request.auth.uid && isValidPost(incoming())) ||
+        // Case 2: Someone liking/unliking the post (affected keys is ONLY likes and likedBy)
+        (incoming().diff(existing()).affectedKeys().hasOnly(['likes', 'likedBy']) 
+         && incoming().likes is int 
+         && incoming().likedBy is list)
+      );
+      allow delete: if isSignedIn() && existing().authorId == request.auth.uid;
+    }
+
+    match /posts/{postId}/replies/{replyId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(replyId) && isValidReply(incoming(), postId);
+      allow update: if isSignedIn() && isValidId(replyId) && existing().authorId == request.auth.uid && isValidReply(incoming(), postId);
+      allow delete: if isSignedIn() && existing().authorId == request.auth.uid;
+    }
+
+    match /resources/{resourceId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Read-only collection for visitors
+    }
+  }
+}

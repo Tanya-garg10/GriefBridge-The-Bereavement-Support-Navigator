@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-healing-slate: #1e293b; /* slate-800 */
+  --color-sage: #718355;             /* Sage text/accent */
+  --color-bg-sage: #f0f4ef;          /* Light Sage background */
+  --color-[#718355]: #718355;
+  --color-[#f0f4ef]: #f0f4ef;
+  --color-[#e2e8e0]: #e2e8e0;
+}
+
+/* Base custom interactive states */
+body {
+  font-family: var(--font-sans);
+  background-color: #FDFCFB; /* Soft warm minimalist background */
+  color: #334155;            /* Slate text */
+}
+
+h1, h2, h3, .serif-theme {
+  font-family: var(--font-serif);
+}
+
+.card {
+  background: white;
+  border: 1px solid #F1F5F9;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.mood-gradient {
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+}
+
+.bg-sage {
+  background-color: #F0F4EF;
+}
+
+.border-sage {
+  border-color: #E2E8E0;
+}
+
+.accent-sage {
+  color: #718355;
+}
+
+/* Custom breath swell animation */
+@keyframes breathSwell {
+  0%, 100% {
+    transform: scale(0.92);
+    box-shadow: 0 0 20px rgba(113, 131, 85, 0.2);
+    background-color: rgba(113, 131, 85, 0.1);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 50px rgba(113, 131, 85, 0.5);
+    background-color: rgba(113, 131, 85, 0.25);
+  }
+}
+
+.animate-breath {
+  animation: breathSwell 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Progress-chart bars */
+.mood-bar {
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}

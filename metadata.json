@@ -1,0 +1,6 @@
+{
+  "name": "GriefBridge",
+  "description": "Safe, compassionate emotional support platform offering AI emotion journaling, local bereavement resources, and anonymous community forums.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
