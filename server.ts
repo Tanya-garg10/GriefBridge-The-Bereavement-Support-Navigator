@@ -216,21 +216,34 @@ const DEFAULT_POSTS = [
 let firestoreDb: any = null;
 let isFirebaseActive = false;
 
+function isValidFirebaseConfig(config: any): boolean {
+  if (!config || typeof config !== 'object') return false;
+  const requiredFields = ['projectId', 'appId', 'apiKey', 'authDomain', 'firestoreDatabaseId'];
+  return requiredFields.every((field) => {
+    const value = config[field];
+    return typeof value === 'string' && value.trim().length > 0 && !value.includes('YOUR_FIREBASE') && !value.includes('YOUR_FIRESTORE');
+  });
+}
+
 async function checkAndInitFirebase(): Promise<boolean> {
   if (firestoreDb) return true;
   try {
     const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
     const configRaw = await fs.readFile(configPath, 'utf-8');
     const config = JSON.parse(configRaw);
-    if (config && config.projectId && config.projectId !== '') {
-      const { initializeApp } = await import('firebase/app');
-      const { getFirestore } = await import('firebase/firestore');
-      const firebaseApp = initializeApp(config);
-      firestoreDb = getFirestore(firebaseApp, config.firestoreDatabaseId);
-      isFirebaseActive = true;
-      console.log("Firebase Firestore successfully initialized and activated in full-stack server.");
-      return true;
+    if (!isValidFirebaseConfig(config)) {
+      console.warn("Firebase config is missing or still contains placeholder values. Falling back to local file DB.");
+      isFirebaseActive = false;
+      return false;
     }
+
+    const { initializeApp } = await import('firebase/app');
+    const { getFirestore } = await import('firebase/firestore');
+    const firebaseApp = initializeApp(config);
+    firestoreDb = getFirestore(firebaseApp, config.firestoreDatabaseId);
+    isFirebaseActive = true;
+    console.log("Firebase Firestore successfully initialized and activated in full-stack server.");
+    return true;
   } catch (error) {
     console.error("Firebase initialization failed, utilizing local file DB fallback:", error);
     isFirebaseActive = false;
