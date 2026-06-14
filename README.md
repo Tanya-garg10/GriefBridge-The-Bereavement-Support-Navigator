@@ -93,7 +93,130 @@ npm run build
 npm start
 ```
 
-## 🔒 Security, Privacy, & Server-Side Safety
+---
+
+## 🚀 Deployment Guide
+
+GriefBridge is a full-stack Node.js application that can be deployed to various cloud platforms. The build process creates a single bundled server file (`dist/server.cjs`) ready for production.
+
+### Prerequisites for Deployment
+- Node.js v18+ runtime environment
+- `GEMINI_API_KEY` environment variable configured
+- Optional: Firebase project for persistent data storage
+
+### Deploy to Google Cloud Run (Recommended)
+1. Install the [Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
+2. Authenticate:
+   ```bash
+   gcloud auth login
+   gcloud config set project YOUR_PROJECT_ID
+   ```
+3. Create a `Dockerfile` in the project root:
+   ```dockerfile
+   FROM node:18-alpine
+   WORKDIR /app
+   COPY package*.json ./
+   RUN npm ci --only=production
+   COPY dist/server.cjs ./dist/
+   EXPOSE 3000
+   CMD ["node", "dist/server.cjs"]
+   ```
+4. Build and deploy:
+   ```bash
+   npm run build
+   gcloud run deploy griefbridge --source . --port 3000 --allow-unauthenticated
+   ```
+5. Set environment variables in Cloud Run console or via:
+   ```bash
+   gcloud run deploy griefbridge --update-env-vars GEMINI_API_KEY=YOUR_KEY
+   ```
+
+### Deploy to Render
+1. Push your code to GitHub
+2. Connect your repo at [render.com](https://render.com)
+3. Create a new Web Service with these settings:
+   - **Build Command**: `npm run build`
+   - **Start Command**: `npm start`
+   - **Environment**: Node
+4. Add environment variables in the Render dashboard:
+   - `GEMINI_API_KEY`
+5. Deploy and monitor
+
+### Deploy to Heroku
+1. Install [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
+2. Authenticate:
+   ```bash
+   heroku login
+   ```
+3. Create a new app:
+   ```bash
+   heroku create griefbridge
+   ```
+4. Set environment variables:
+   ```bash
+   heroku config:set GEMINI_API_KEY=YOUR_KEY
+   ```
+5. Create a `Procfile` in the project root:
+   ```
+   web: npm start
+   ```
+6. Deploy:
+   ```bash
+   git push heroku master
+   ```
+
+### Deploy to Vercel (Frontend + Serverless Backend)
+1. Push code to GitHub
+2. Import project at [vercel.com](https://vercel.com)
+3. Configure build and deployment settings:
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. Add environment variables in Vercel dashboard
+5. Deploy
+
+### Deploy to AWS (EC2 or ECS)
+**EC2 Deployment:**
+1. Launch an EC2 instance (Ubuntu 22.04, t2.micro or larger)
+2. SSH into the instance
+3. Install Node.js:
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   ```
+4. Clone and build:
+   ```bash
+   git clone YOUR_REPO_URL
+   cd griefbridge
+   npm install
+   npm run build
+   ```
+5. Run with PM2:
+   ```bash
+   npm install -g pm2
+   pm2 start dist/server.cjs
+   pm2 startup
+   ```
+
+**ECS Deployment:**
+1. Create Docker image and push to AWS ECR
+2. Create an ECS task definition with port 3000
+3. Configure environment variables in task definition
+4. Deploy service
+
+### Environment Variables for Deployment
+Set these in your cloud platform's environment configuration:
+- **`GEMINI_API_KEY`** (required): Your Google Gemini API key
+- **`APP_URL`**: Your deployed application URL (e.g., `https://griefbridge.example.com`)
+- **`NODE_ENV`**: Set to `production`
+
+### Monitoring & Logs
+After deployment, monitor your application:
+- **Google Cloud Run**: View logs in Cloud Logging dashboard
+- **Render**: Check logs in deployment tab
+- **Heroku**: `heroku logs --tail`
+- **AWS**: CloudWatch logs for EC2, CloudWatch Container Insights for ECS
+
+---
 
 - **No Front-End Leakage**: Since the Gemini model calls are mapped strictly inside `server.ts`, your `GEMINI_API_KEY` is never transmitted to the browser's DevTools network panel.
 - **Anonymity Assured**: Individual assessments and pseudonym coordinates are completely locked inside sandboxed browser memory (`localStorage` state persistence) or private Firestore instances, eliminating metadata tracking.
