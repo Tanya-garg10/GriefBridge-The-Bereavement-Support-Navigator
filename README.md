@@ -111,7 +111,9 @@ npm start
 
 ## 📋 License
 
-This project is provided as-is for support and educational purposes.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+GriefBridge is open source and free to use, modify, and distribute under the terms of the MIT License. The software is provided as-is for support, educational, and mental wellness purposes.
 
 ---
 
