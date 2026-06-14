@@ -4,8 +4,6 @@ An offline-first & custom cloud-sync safe companion design supporting individual
 
 GriefBridge provides a secure, anonymous platform for processing grief through journaling, wellness tracking, peer support forums, and guided breathing exercises. All sensitive operations are server-side to protect user privacy and prevent data leakage.
 
----
-
 ## 🌟 Key Core Features & Sanctuary Modules
 
 ### 1. 📝 AI Dynamic Sentiment Journal
@@ -29,8 +27,6 @@ GriefBridge provides a secure, anonymous platform for processing grief through j
 ### 5. 💬 Anonymous Comfort Forums
 - **Sanctuary Board**: Moderated peer forums with categorical tags (Somatic, Memorial, Shared Support, Coping Strategy).
 - **Ethics Safe Rail**: Built-in strict code of conduct highlighting secure encryption, absolute pseudonym protection, and supportive guidance.
-
----
 
 ## 📂 Architecture & Directory Structure
 
@@ -60,8 +56,6 @@ GriefBridge is built on a compliant full-stack single container design:
         ├── Navigation.tsx      # Sidebar layouts & tab states
         └── LandingPage.tsx     # Introducing dashboard screens
 ```
-
----
 
 ## 🛠️ Step-by-Step Local Setup
 
@@ -99,23 +93,17 @@ npm run build
 npm start
 ```
 
----
-
 ## 🔒 Security, Privacy, & Server-Side Safety
 
 - **No Front-End Leakage**: Since the Gemini model calls are mapped strictly inside `server.ts`, your `GEMINI_API_KEY` is never transmitted to the browser's DevTools network panel.
 - **Anonymity Assured**: Individual assessments and pseudonym coordinates are completely locked inside sandboxed browser memory (`localStorage` state persistence) or private Firestore instances, eliminating metadata tracking.
 - **Sensitive Config Files**: Firebase configuration files are excluded from version control to prevent accidental secret exposure.
 
----
-
 ## 📋 License
 
 This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
 GriefBridge is open source and free to use, modify, and distribute under the terms of the MIT License. The software is provided as-is for support, educational, and mental wellness purposes.
-
----
 
 ## ❤️ Contributing
 
@@ -125,8 +113,6 @@ To maintain code quality, run:
 ```bash
 npm run lint
 ```
-
----
 
 ## 🤝 Get Involved
 
